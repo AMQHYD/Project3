@@ -27,6 +27,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+    DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useFieldArray } from "react-hook-form";
@@ -90,11 +91,10 @@ export default function CreateEstimatePage() {
     const [open, setOpen] = useState(false);
 
 
-  function onSubmit(values: z.infer<typeof estimateSchema>) {
+  const onSubmit = (values: z.infer<typeof estimateSchema>) => {
     console.log(values);
-        setOpen(true);
-
-  }
+    setOpen(true);
+  };
 
     const calculateTotal = () => {
         let total = 0;
@@ -107,6 +107,12 @@ export default function CreateEstimatePage() {
             total += itemTotal + taxAmount;
         });
         return total.toFixed(2);
+    };
+
+    const submitEstimate = () => {
+        // Implement estimate submission logic here
+        console.log("Estimate submitted!");
+        setOpen(false); // Close the dialog after submission
     };
 
   return (
@@ -359,8 +365,7 @@ export default function CreateEstimatePage() {
           <DialogHeader>
             <DialogTitle>Estimate Preview</DialogTitle>
             <DialogDescription>
-              This is a preview of your estimate. Please review it before
-              submitting.
+              This is a preview of your estimate. Please review it before submitting.
             </DialogDescription>
           </DialogHeader>
           <div className="mt-4">
@@ -373,7 +378,14 @@ export default function CreateEstimatePage() {
               <p>Terms and Conditions: {form.getValues("terms")}</p>
             {/* Add more estimate details here */}
           </div>
-          <Button type="submit">Submit Estimate</Button>
+            <DialogFooter>
+                <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
+                    Edit
+                </Button>
+                <Button type="button" onClick={submitEstimate}>
+                    Submit Estimate
+                </Button>
+            </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

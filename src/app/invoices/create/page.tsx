@@ -28,6 +28,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+    DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useFieldArray } from "react-hook-form";
@@ -90,10 +91,10 @@ export default function CreateInvoicePage() {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [open, setOpen] = useState(false);
 
-  function onSubmit(values: z.infer<typeof invoiceSchema>) {
-    console.log(values);
-    setOpen(true);
-  }
+    const onSubmit = (values: z.infer<typeof invoiceSchema>) => {
+        console.log(values);
+        setOpen(true);
+    };
 
     const calculateTotal = () => {
         let total = 0;
@@ -106,6 +107,12 @@ export default function CreateInvoicePage() {
             total += itemTotal + taxAmount;
         });
         return total.toFixed(2);
+    };
+
+    const submitInvoice = () => {
+        // Implement invoice submission logic here
+        console.log("Invoice submitted!");
+        setOpen(false); // Close the dialog after submission
     };
 
 
@@ -369,9 +376,17 @@ export default function CreateInvoicePage() {
               <p>Terms and Conditions: {form.getValues("terms")}</p>
             {/* Add more invoice details here */}
           </div>
-          <Button type="submit">Submit Invoice</Button>
+            <DialogFooter>
+                <Button type="button" variant="secondary" onClick={() => setOpen(false)}>
+                    Edit
+                </Button>
+                <Button type="button" onClick={submitInvoice}>
+                    Submit Invoice
+                </Button>
+            </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
   );
 }
+
