@@ -33,7 +33,7 @@ export default function InvoicesPage() {
             </Button>
           </Link>
           <Link href="/recurring-invoices/create">
-            <Button variant="secondary">Create Recurring Invoice</Button>
+            <Button variant="primary">Create Recurring Invoice</Button>
           </Link>
         </div>
       </div>
@@ -78,3 +78,4 @@ export default function InvoicesPage() {
     </div>
   );
 }
+
