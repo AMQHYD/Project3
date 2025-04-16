@@ -19,6 +19,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@/components/ui/avatar";
+import { useState } from "react";
 
 const profileSchema = z.object({
   name: z.string().min(2, {
@@ -41,6 +42,20 @@ export default function ProfilePage() {
       logo: "",
     },
   });
+
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setSelectedImage(reader.result as string);
+                form.setValue("logo", reader.result as string); // Set the logo value in the form
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
   function onSubmit(values: z.infer<typeof profileSchema>) {
     console.log(values);
@@ -116,19 +131,23 @@ export default function ProfilePage() {
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="logo"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Business Logo URL</FormLabel>
-                <FormControl>
-                  <Input placeholder="Logo URL" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+                control={form.control}
+                name="logo"
+                render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Business Logo</FormLabel>
+                        <FormControl>
+                            <Input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageUpload}
+                            />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
           <Button type="submit">Update Profile</Button>
         </form>
       </Form>
