@@ -62,6 +62,7 @@ const estimateSchema = z.object({
     message: "At least one item is required.",
   }),
   notes: z.string().optional(),
+    terms: z.string().optional(),
   template: z.enum(["template1", "template2"]),
 });
 
@@ -75,6 +76,7 @@ export default function CreateEstimatePage() {
       expiryDate: new Date(),
       items: [{ product: "", description: "", quantity: 1, price: 0, tax: 0 }],
       notes: "",
+        terms: "",
       template: "template1",
     },
   });
@@ -315,6 +317,19 @@ export default function CreateEstimatePage() {
             <div className="text-xl font-bold">
                 Total: ${calculateTotal()}
             </div>
+            <FormField
+                control={form.control}
+                name="terms"
+                render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Terms and Conditions</FormLabel>
+                        <FormControl>
+                            <Textarea placeholder="Terms and Conditions" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
           <FormField
             control={form.control}
             name="template"
@@ -355,6 +370,7 @@ export default function CreateEstimatePage() {
             <p>Issue Date: {form.getValues("issueDate") ? format(form.getValues("issueDate"), "PPP") : ''}</p>
             <p>Expiry Date: {form.getValues("expiryDate") ? format(form.getValues("expiryDate"), "PPP") : ''}</p>
               <p>Total: ${calculateTotal()}</p>
+              <p>Terms and Conditions: {form.getValues("terms")}</p>
             {/* Add more estimate details here */}
           </div>
           <Button type="submit">Submit Estimate</Button>
@@ -363,3 +379,4 @@ export default function CreateEstimatePage() {
     </div>
   );
 }
+

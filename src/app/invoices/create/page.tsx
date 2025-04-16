@@ -313,6 +313,19 @@ export default function CreateInvoicePage() {
             <div className="text-xl font-bold">
                 Total: ${calculateTotal()}
             </div>
+              <FormField
+                  control={form.control}
+                  name="terms"
+                  render={({ field }) => (
+                      <FormItem>
+                          <FormLabel>Terms and Conditions</FormLabel>
+                          <FormControl>
+                              <Textarea placeholder="Terms and Conditions" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                      </FormItem>
+                  )}
+              />
           <FormField
             control={form.control}
             name="template"
@@ -353,6 +366,7 @@ export default function CreateInvoicePage() {
             <p>Issue Date: {form.getValues("issueDate") ? format(form.getValues("issueDate"), "PPP") : ''}</p>
             <p>Due Date: {form.getValues("dueDate") ? format(form.getValues("dueDate"), "PPP") : ''}</p>
               <p>Total: ${calculateTotal()}</p>
+              <p>Terms and Conditions: {form.getValues("terms")}</p>
             {/* Add more invoice details here */}
           </div>
           <Button type="submit">Submit Invoice</Button>
@@ -361,3 +375,4 @@ export default function CreateInvoicePage() {
     </div>
   );
 }
+
