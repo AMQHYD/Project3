@@ -33,31 +33,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setLoading(false);
         });
 
-        return () => unsubscribe(); // Cleanup subscription on unmount
+        return () => unsubscribe();
     }, [auth]);
 
     const signIn = async (email: string, password: string): Promise<void> => {
-        try {
-            await signInWithEmailAndPassword(auth, email, password);
-        } catch (error: any) {
-            throw new Error(error.message);
-        }
+        await signInWithEmailAndPassword(auth, email, password);
     };
 
     const signUp = async (email: string, password: string): Promise<void> => {
-        try {
-            await createUserWithEmailAndPassword(auth, email, password);
-        } catch (error: any) {
-            throw new Error(error.message);
-        }
+        await createUserWithEmailAndPassword(auth, email, password);
     };
 
     const signOut = async (): Promise<void> => {
-        try {
-            await firebaseSignOut(auth);
-        } catch (error: any) {
-            throw new Error(error.message);
-        }
+        await firebaseSignOut(auth);
     };
 
     const value: AuthContextType = {
@@ -82,4 +70,3 @@ export const useAuth = (): AuthContextType => {
     }
     return context;
 };
-
