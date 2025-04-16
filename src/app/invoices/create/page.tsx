@@ -94,9 +94,9 @@ export default function CreateInvoicePage() {
     const calculateTotal = () => {
         let total = 0;
         fields.forEach((item, index) => {
-            const quantity = form.getValues(`items.${index}.quantity`) || 0;
-            const price = form.getValues(`items.${index}.price`) || 0;
-            const tax = form.getValues(`items.${index}.tax`) || 0;
+            const quantity = Number(form.getValues(`items.${index}.quantity`)) || 0;
+            const price = Number(form.getValues(`items.${index}.price`)) || 0;
+            const tax = Number(form.getValues(`items.${index}.tax`)) || 0;
             total += (quantity * price) + (tax || 0);
         });
         return total.toFixed(2);
