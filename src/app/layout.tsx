@@ -1,3 +1,5 @@
+"use client";
+
 import type {Metadata} from 'next';
 import {Geist, Geist_Mono} from 'next/font/google';
 import './globals.css';
@@ -14,6 +16,8 @@ import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger} from "@/components/ui/dropdown-menu";
 import {Bell} from "lucide-react";
 import {Button} from "@/components/ui/button";
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -35,6 +39,37 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState(false); // Simulate authentication status
+
+  useEffect(() => {
+    // Simulate authentication check (replace with your actual authentication logic)
+    const checkAuth = () => {
+      // For this demo, we're using a simple flag. In a real app, you'd check for a token, session, etc.
+      const isLoggedIn = true; // Replace with your actual check
+      setIsAuthenticated(isLoggedIn);
+
+      if (!isLoggedIn) {
+        router.push('/login');
+      }
+    };
+
+    checkAuth();
+  }, [router]);
+
+  // If not authenticated, don't render the app layout
+  if (!isAuthenticated) {
+    return (
+      <html lang="en">
+        <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+          {children}
+          <Toaster />
+        </body>
+      </html>
+    );
+  }
+
+
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
