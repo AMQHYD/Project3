@@ -29,6 +29,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useFieldArray } from "react-hook-form";
 
 const estimateSchema = z.object({
   clientName: z.string().min(2, {
@@ -41,15 +42,21 @@ const estimateSchema = z.object({
   expiryDate: z.date(),
   items: z.array(
     z.object({
-      description: z.string().min(2, {
-        message: "Description must be at least 2 characters.",
+      product: z.string().min(2, {
+        message: "Product name must be at least 2 characters.",
       }),
+      description: z.string().optional(),
       quantity: z.number().min(1, {
         message: "Quantity must be at least 1.",
       }),
       price: z.number().min(0, {
         message: "Price must be at least 0.",
       }),
+      tax: z.number().min(0, {
+        message: "Tax must be at least 0.",
+      }).max(100, {
+        message: "Tax must be at most 100.",
+      }).optional(),
     })
   ).min(1, {
     message: "At least one item is required.",
@@ -66,11 +73,16 @@ export default function CreateEstimatePage() {
       estimateNumber: "",
       issueDate: new Date(),
       expiryDate: new Date(),
-      items: [{ description: "", quantity: 1, price: 0 }],
+      items: [{ product: "", description: "", quantity: 1, price: 0, tax: 0 }],
       notes: "",
       template: "template1",
     },
   });
+
+    const { fields, append, remove } = useFieldArray({
+        control: form.control,
+        name: "items",
+    });
 
   const [date, setDate] = useState<Date | undefined>(new Date());
     const [open, setOpen] = useState(false);
@@ -81,6 +93,19 @@ export default function CreateEstimatePage() {
         setOpen(true);
 
   }
+
+    const calculateTotal = () => {
+        let total = 0;
+        fields.forEach((item, index) => {
+            const quantity = Number(form.getValues(`items.${index}.quantity`)) || 0;
+            const price = Number(form.getValues(`items.${index}.price`)) || 0;
+            const taxRate = Number(form.getValues(`items.${index}.tax`)) || 0;
+            const itemTotal = quantity * price;
+            const taxAmount = itemTotal * (taxRate / 100);
+            total += itemTotal + taxAmount;
+        });
+        return total.toFixed(2);
+    };
 
   return (
     <div className="container mx-auto py-10">
@@ -195,6 +220,101 @@ export default function CreateEstimatePage() {
               </FormItem>
             )}
           />
+            <div>
+                <FormLabel>Items</FormLabel>
+                {fields.map((item, index) => (
+                    <div key={item.id} className="flex space-x-2 mb-4">
+                        <FormField
+                            control={form.control}
+                            name={`items.${index}.product` as const}
+                            render={({ field }) => (
+                                <FormItem className="w-1/4">
+                                    <FormLabel>Product</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Product" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name={`items.${index}.description` as const}
+                            render={({ field }) => (
+                                <FormItem className="w-1/4">
+                                    <FormLabel>Description</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Description" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name={`items.${index}.quantity` as const}
+                            render={({ field }) => (
+                                <FormItem className="w-1/8">
+                                    <FormLabel>Quantity</FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            type="number"
+                                            placeholder="Quantity"
+                                            {...field}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name={`items.${index}.price` as const}
+                            render={({ field }) => (
+                                <FormItem className="w-1/8">
+                                    <FormLabel>Price</FormLabel>
+                                    <FormControl>
+                                        <Input type="number" placeholder="Price" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name={`items.${index}.tax` as const}
+                            render={({ field }) => (
+                                <FormItem className="w-1/8">
+                                    <FormLabel>Tax (%)</FormLabel>
+                                    <FormControl>
+                                        <Input type="number" placeholder="Tax" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => remove(index)}
+                        >
+                            Remove
+                        </Button>
+                    </div>
+                ))}
+                <Button
+                    type="button"
+                    onClick={() =>
+                        append({ product: "", description: "", quantity: 1, price: 0, tax: 0 })
+                    }
+                >
+                    Add Item
+                </Button>
+            </div>
+            <div className="text-xl font-bold">
+                Total: ${calculateTotal()}
+            </div>
           <FormField
             control={form.control}
             name="template"
@@ -234,6 +354,7 @@ export default function CreateEstimatePage() {
             <p>Estimate Number: {form.getValues("estimateNumber")}</p>
             <p>Issue Date: {form.getValues("issueDate") ? format(form.getValues("issueDate"), "PPP") : ''}</p>
             <p>Expiry Date: {form.getValues("expiryDate") ? format(form.getValues("expiryDate"), "PPP") : ''}</p>
+              <p>Total: ${calculateTotal()}</p>
             {/* Add more estimate details here */}
           </div>
           <Button type="submit">Submit Estimate</Button>
@@ -242,5 +363,3 @@ export default function CreateEstimatePage() {
     </div>
   );
 }
-
-    
