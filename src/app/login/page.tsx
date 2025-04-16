@@ -34,7 +34,7 @@ const registerSchema = z.object({
     message: "Invalid email address.",
   }),
   password: z.string().min(8, {
-    message: "Password must be at least 8 characters.",
+      message: "Password must be at least 8 characters.",
   }),
   confirmPassword: z.string().min(8, {
       message: "Confirm Password must be at least 8 characters.",
@@ -100,8 +100,12 @@ export default function LoginPage() {
           setIsLoading(false);
           return;
       }
+
       // Simulate registration
       console.log("Registration successful", values);
+
+      // After successful registration, redirect to profile setup page
+      router.push(`/profile?newRegistration=true&email=${values.email}`);
 
       setIsRegistering(false);
       setIsLoading(false);
