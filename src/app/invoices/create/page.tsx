@@ -91,6 +91,18 @@ export default function CreateInvoicePage() {
     setOpen(true);
   }
 
+    const calculateTotal = () => {
+        let total = 0;
+        fields.forEach((item, index) => {
+            const quantity = form.getValues(`items.${index}.quantity`) || 0;
+            const price = form.getValues(`items.${index}.price`) || 0;
+            const tax = form.getValues(`items.${index}.tax`) || 0;
+            total += (quantity * price) + (tax || 0);
+        });
+        return total.toFixed(2);
+    };
+
+
   return (
     <div className="container mx-auto py-10">
       <h1 className="text-3xl font-bold mb-4">Create Invoice</h1>
@@ -292,6 +304,9 @@ export default function CreateInvoicePage() {
               Add Item
             </Button>
           </div>
+            <div className="text-xl font-bold">
+                Total: ${calculateTotal()}
+            </div>
           <FormField
             control={form.control}
             name="template"
@@ -331,6 +346,7 @@ export default function CreateInvoicePage() {
             <p>Invoice Number: {form.getValues("invoiceNumber")}</p>
             <p>Issue Date: {form.getValues("issueDate") ? format(form.getValues("issueDate"), "PPP") : ''}</p>
             <p>Due Date: {form.getValues("dueDate") ? format(form.getValues("dueDate"), "PPP") : ''}</p>
+              <p>Total: ${calculateTotal()}</p>
             {/* Add more invoice details here */}
           </div>
           <Button type="submit">Submit Invoice</Button>
@@ -339,5 +355,3 @@ export default function CreateInvoicePage() {
     </div>
   );
 }
-
-    
