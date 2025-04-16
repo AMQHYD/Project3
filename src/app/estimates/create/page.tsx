@@ -14,6 +14,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { useState } from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const estimateSchema = z.object({
   clientName: z.string().min(2, {
@@ -40,6 +47,7 @@ const estimateSchema = z.object({
     message: "At least one item is required.",
   }),
   notes: z.string().optional(),
+  template: z.enum(["template1", "template2"]),
 });
 
 export default function CreateEstimatePage() {
@@ -52,8 +60,11 @@ export default function CreateEstimatePage() {
       expiryDate: new Date(),
       items: [{ description: "", quantity: 1, price: 0 }],
       notes: "",
+      template: "template1",
     },
   });
+
+  const [date, setDate] = useState<Date | undefined>(new Date());
 
   function onSubmit(values: z.infer<typeof estimateSchema>) {
     console.log(values);
@@ -64,7 +75,7 @@ export default function CreateEstimatePage() {
       <h1 className="text-3xl font-bold mb-4">Create Estimate</h1>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <FormField
+        <FormField
             control={form.control}
             name="clientName"
             render={({ field }) => (
@@ -90,9 +101,113 @@ export default function CreateEstimatePage() {
               </FormItem>
             )}
           />
+          <FormField
+            control={form.control}
+            name="issueDate"
+            render={({ field }) => (
+              <FormItem className="flex flex-col space-y-3">
+                <FormLabel>Issue Date</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-[240px] pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value ? (
+                          format(field.value, "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      disabled={(date) =>
+                        date > new Date()
+                      }
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+           <FormField
+            control={form.control}
+            name="expiryDate"
+            render={({ field }) => (
+              <FormItem className="flex flex-col space-y-3">
+                <FormLabel>Expiry Date</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-[240px] pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value ? (
+                          format(field.value, "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      disabled={(date) =>
+                        date < new Date()
+                      }
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="template"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Template</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a template" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="template1">Template 1</SelectItem>
+                    <SelectItem value="template2">Template 2</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
           <Button type="submit">Submit</Button>
         </form>
       </Form>
     </div>
   );
 }
+
