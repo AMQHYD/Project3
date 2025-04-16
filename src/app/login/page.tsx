@@ -16,6 +16,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { Checkbox } from "@/components/ui/checkbox";
+import Link from "next/link";
 
 const loginSchema = z.object({
   email: z.string().email({
@@ -24,6 +26,7 @@ const loginSchema = z.object({
   password: z.string().min(8, {
     message: "Password must be at least 8 characters.",
   }),
+  rememberMe: z.boolean().optional(),
 });
 
 export default function LoginPage() {
@@ -35,6 +38,7 @@ export default function LoginPage() {
     defaultValues: {
       email: "",
       password: "",
+      rememberMe: false,
     },
   });
 
@@ -98,6 +102,32 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
+              <div className="flex items-center justify-between">
+                <FormField
+                  control={form.control}
+                  name="rememberMe"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-2 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel className="text-sm font-normal">
+                        Remember Me
+                      </FormLabel>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Link
+                  href="/forgot-password" // Replace with your forgot password route
+                  className="text-sm text-primary hover:underline"
+                >
+                  Forgot Password?
+                </Link>
+              </div>
               <Button disabled={isLoading} className="w-full" type="submit">
                 {isLoading ? "Logging in..." : "Login"}
               </Button>
