@@ -37,6 +37,8 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@/components/ui/avatar";
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 const invoiceSchema = z.object({
   clientName: z.string().min(2, {
@@ -137,6 +139,59 @@ export default function CreateInvoicePage() {
         // Implement invoice submission logic here
         console.log("Invoice submitted!");
         setOpen(false); // Close the dialog after submission
+    };
+
+    const generateInvoicePdf = () => {
+        const doc = new jsPDF();
+
+        // Company Details
+        doc.setFontSize(10);
+        doc.text(profile.businessName || "Your Business", 14, 20);
+        doc.text(profile.address || "Your Address", 14, 26);
+        doc.text(`Mobile: ${profile.mobile || "N/A"}`, 14, 32);
+
+        // Invoice Details
+        doc.setFontSize(12);
+        doc.text(`Invoice Number: ${form.getValues("invoiceNumber")}`, 14, 45);
+        doc.text(`Client Name: ${form.getValues("clientName")}`, 14, 51);
+        doc.text(`Issue Date: ${form.getValues("issueDate") ? format(form.getValues("issueDate"), "PPP") : ''}`, 14, 57);
+        doc.text(`Due Date: ${form.getValues("dueDate") ? format(form.getValues("dueDate"), "PPP") : ''}`, 14, 63);
+
+        // Items Table
+        const itemsData = fields.map((item, index) => {
+            const quantity = form.getValues(`items.${index}.quantity`) || 0;
+            const price = form.getValues(`items.${index}.price`) || 0;
+            const taxRate = form.getValues(`items.${index}.tax`) || 0;
+            const itemTotal = quantity * price;
+            const taxAmount = itemTotal * (taxRate / 100);
+            const total = itemTotal + taxAmount;
+
+            return [
+                form.getValues(`items.${index}.product`),
+                form.getValues(`items.${index}.description`),
+                quantity,
+                price.toFixed(2),
+                taxRate.toFixed(2),
+                total.toFixed(2),
+            ];
+        });
+
+        (doc as any).autoTable({
+            head: [['Product', 'Description', 'Quantity', 'Price', 'Tax (%)', 'Total']],
+            body: itemsData,
+            startY: 70,
+        });
+
+        // Total Amount
+        const finalY = (doc as any).autoTable.previous.finalY;
+        doc.setFontSize(12);
+        doc.text(`Total: $${calculateTotal()}`, 14, finalY + 15);
+
+        // Terms and Conditions
+        doc.setFontSize(10);
+        doc.text(`Terms and Conditions: ${form.getValues("terms")}`, 14, finalY + 25);
+
+        doc.save(`invoice_${form.getValues("invoiceNumber")}.pdf`);
     };
 
 
@@ -426,11 +481,12 @@ export default function CreateInvoicePage() {
                 <Button type="button" onClick={submitInvoice}>
                     Submit Invoice
                 </Button>
+                <Button type="button" variant="secondary" onClick={generateInvoicePdf}>
+                    Generate PDF
+                </Button>
             </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
   );
 }
-
-
