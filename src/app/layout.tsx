@@ -59,26 +59,18 @@ export default function RootLayout({
                     </Link>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <Link href="/invoices/create">
+                    <Link href="/invoices">
                       <SidebarMenuButton>
                         <Icons.invoice className="mr-2 h-4 w-4" />
-                        <span>Create Invoice</span>
+                        <span>Invoices</span>
                       </SidebarMenuButton>
                     </Link>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <Link href="/recurring-invoices/create">
-                      <SidebarMenuButton>
-                        <Icons.invoice className="mr-2 h-4 w-4" />
-                        <span>Create Recurring Invoice</span>
-                      </SidebarMenuButton>
-                    </Link>
-                  </SidebarMenuItem>
-                  <SidebarMenuItem>
-                    <Link href="/estimates/create">
+                    <Link href="/estimates">
                       <SidebarMenuButton>
                         <Icons.estimate className="mr-2 h-4 w-4" />
-                        <span>Create Estimate</span>
+                        <span>Estimates</span>
                       </SidebarMenuButton>
                     </Link>
                   </SidebarMenuItem>

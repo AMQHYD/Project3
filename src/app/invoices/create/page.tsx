@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
+  FormDescription,
   FormItem,
   FormLabel,
   FormMessage,
@@ -22,6 +22,14 @@ import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const invoiceSchema = z.object({
   clientName: z.string().min(2, {
@@ -68,9 +76,11 @@ export default function CreateInvoicePage() {
   });
 
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const [open, setOpen] = useState(false);
 
   function onSubmit(values: z.infer<typeof invoiceSchema>) {
     console.log(values);
+    setOpen(true);
   }
 
   return (
@@ -207,10 +217,29 @@ export default function CreateInvoicePage() {
               </FormItem>
             )}
           />
-          <Button type="submit">Submit</Button>
+          <Button type="submit">Preview Invoice</Button>
         </form>
       </Form>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Invoice Preview</DialogTitle>
+            <DialogDescription>
+              This is a preview of your invoice. Please review it before
+              submitting.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            {/* Display Invoice Preview Here - Replace with actual invoice data */}
+            <p>Client Name: {form.getValues("clientName")}</p>
+            <p>Invoice Number: {form.getValues("invoiceNumber")}</p>
+            <p>Issue Date: {form.getValues("issueDate") ? format(form.getValues("issueDate"), "PPP") : ''}</p>
+            <p>Due Date: {form.getValues("dueDate") ? format(form.getValues("dueDate"), "PPP") : ''}</p>
+            {/* Add more invoice details here */}
+          </div>
+          <Button type="submit">Submit Invoice</Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
-

@@ -21,6 +21,14 @@ import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const estimateSchema = z.object({
   clientName: z.string().min(2, {
@@ -65,9 +73,13 @@ export default function CreateEstimatePage() {
   });
 
   const [date, setDate] = useState<Date | undefined>(new Date());
+    const [open, setOpen] = useState(false);
+
 
   function onSubmit(values: z.infer<typeof estimateSchema>) {
     console.log(values);
+        setOpen(true);
+
   }
 
   return (
@@ -204,10 +216,31 @@ export default function CreateEstimatePage() {
               </FormItem>
             )}
           />
-          <Button type="submit">Submit</Button>
+          <Button type="submit">Preview Estimate</Button>
         </form>
       </Form>
+          <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Estimate Preview</DialogTitle>
+            <DialogDescription>
+              This is a preview of your estimate. Please review it before
+              submitting.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            {/* Display Estimate Preview Here - Replace with actual estimate data */}
+            <p>Client Name: {form.getValues("clientName")}</p>
+            <p>Estimate Number: {form.getValues("estimateNumber")}</p>
+            <p>Issue Date: {form.getValues("issueDate") ? format(form.getValues("issueDate"), "PPP") : ''}</p>
+            <p>Expiry Date: {form.getValues("expiryDate") ? format(form.getValues("expiryDate"), "PPP") : ''}</p>
+            {/* Add more estimate details here */}
+          </div>
+          <Button type="submit">Submit Estimate</Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
 
+    
