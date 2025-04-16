@@ -11,6 +11,7 @@ import {
     User,
 } from 'firebase/auth';
 import { app } from '@/lib/firebase'; // Import your Firebase app instance
+import { useSession, signOut as nextAuthSignOut, signIn as nextAuthSignIn } from "next-auth/react"
 
 interface AuthContextType {
     user: User | null;
@@ -71,10 +72,36 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return authProvider;
 };
 
-export const useAuth = (): AuthContextType => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error("useAuth must be used within an AuthProvider");
+export const useAuth = () => {
+  const { data: session, status } = useSession()
+
+  const signIn = async (email: string, password: string) => {
+    try {
+      const result = await nextAuthSignIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      })
+
+      if (result?.error) {
+        throw new Error(result.error)
+      }
+
+      return result
+    } catch (error) {
+      throw error
     }
-    return context;
-};
+  }
+
+  const signOut = async () => {
+    await nextAuthSignOut()
+  }
+
+  return {
+    user: session?.user,
+    isAuthenticated: status === "authenticated",
+    isLoading: status === "loading",
+    signIn,
+    signOut,
+  }
+}
