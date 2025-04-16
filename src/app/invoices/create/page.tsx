@@ -53,7 +53,11 @@ const invoiceSchema = z.object({
       price: z.number().min(0, {
         message: "Price must be at least 0.",
       }),
-      tax: z.number().optional(),
+      tax: z.number().min(0, {
+        message: "Tax must be at least 0.",
+      }).max(100, {
+        message: "Tax must be at most 100.",
+      }).optional(),
     })
   ).min(1, {
     message: "At least one item is required.",
@@ -96,8 +100,10 @@ export default function CreateInvoicePage() {
         fields.forEach((item, index) => {
             const quantity = Number(form.getValues(`items.${index}.quantity`)) || 0;
             const price = Number(form.getValues(`items.${index}.price`)) || 0;
-            const tax = Number(form.getValues(`items.${index}.tax`)) || 0;
-            total += (quantity * price) + (tax || 0);
+            const taxRate = Number(form.getValues(`items.${index}.tax`)) || 0;
+            const itemTotal = quantity * price;
+            const taxAmount = itemTotal * (taxRate / 100);
+            total += itemTotal + taxAmount;
         });
         return total.toFixed(2);
     };
@@ -277,7 +283,7 @@ export default function CreateInvoicePage() {
                   name={`items.${index}.tax` as const}
                   render={({ field }) => (
                     <FormItem className="w-1/8">
-                      <FormLabel>Tax</FormLabel>
+                      <FormLabel>Tax (%)</FormLabel>
                       <FormControl>
                         <Input type="number" placeholder="Tax" {...field} />
                       </FormControl>
