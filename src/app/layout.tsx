@@ -69,6 +69,10 @@ export default function RootLayout({
     );
   }
 
+    const handleLogout = () => {
+        setIsAuthenticated(false);
+        router.push('/login');
+    };
 
   return (
     <html lang="en">
@@ -149,7 +153,7 @@ export default function RootLayout({
                       <Link href="/profile">Profile</Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem>Logout</DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </header>
@@ -164,4 +168,3 @@ export default function RootLayout({
     </html>
   );
 }
-
