@@ -18,6 +18,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
+import { useAuth } from '@/hooks/use-auth'; // Import useAuth hook
 
 const loginSchema = z.object({
   email: z.string().email({
@@ -45,6 +46,8 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const router = useRouter();
+    const { signIn, signUp } = useAuth(); // Use useAuth hook for sign-in and sign-up
+
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -64,52 +67,52 @@ export default function LoginPage() {
     },
   });
 
-  async function onLoginSubmit(values: z.infer<typeof loginSchema>) {
-    setIsLoading(true);
+    async function onLoginSubmit(values: z.infer<typeof loginSchema>) {
+        setIsLoading(true);
 
-    // Simulate authentication
-    if (
-      values.email === "demo@example.com" &&
-      values.password === "demo1234"
-    ) {
-      // Redirect to dashboard on successful login
-      router.push("/dashboard");
-    } else {
-      // Set login error
-      loginForm.setError("email", {
-        type: "manual",
-        message: "Invalid credentials.",
-      });
-      loginForm.setError("password", {
-        type: "manual",
-        message: "Invalid credentials.",
-      });
+        try {
+            await signIn(values.email, values.password);
+            router.push("/dashboard");
+        } catch (error: any) {
+            loginForm.setError("email", {
+                type: "manual",
+                message: error.message || "Invalid credentials.",
+            });
+            loginForm.setError("password", {
+                type: "manual",
+                message: error.message || "Invalid credentials.",
+            });
+        }
+
+        setIsLoading(false);
     }
 
-    setIsLoading(false);
-  }
+    async function onRegisterSubmit(values: z.infer<typeof registerSchema>) {
+        setIsLoading(true);
 
-  async function onRegisterSubmit(values: z.infer<typeof registerSchema>) {
-      setIsLoading(true);
+        if (values.password !== values.confirmPassword) {
+            registerForm.setError("confirmPassword", {
+                type: "manual",
+                message: "Passwords do not match.",
+            });
+            setIsLoading(false);
+            return;
+        }
 
-      if (values.password !== values.confirmPassword) {
-          registerForm.setError("confirmPassword", {
-              type: "manual",
-              message: "Passwords do not match.",
-          });
-          setIsLoading(false);
-          return;
-      }
+        try {
+            await signUp(values.email, values.password);
+            router.push(`/profile?newRegistration=true&email=${values.email}`); // Redirect to profile on successful registration
+        } catch (error: any) {
+            registerForm.setError("email", {
+                type: "manual",
+                message: error.message || "Registration failed.",
+            });
+        }
 
-      // Simulate registration
-      console.log("Registration successful", values);
 
-      // After successful registration, redirect to profile setup page
-      router.push(`/profile?newRegistration=true&email=${values.email}`);
-
-      setIsRegistering(false);
-      setIsLoading(false);
-  }
+        setIsRegistering(false);
+        setIsLoading(false);
+    }
 
   return (
     <div className="flex items-center justify-center h-screen bg-secondary">
@@ -136,7 +139,7 @@ export default function LoginPage() {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input placeholder="demo@example.com" type="email" {...field} />
+                      <Input placeholder="user@example.com" type="email" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

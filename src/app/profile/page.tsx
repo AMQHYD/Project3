@@ -21,6 +21,10 @@ import {
 } from "@/components/ui/avatar";
 import { useState, useEffect } from "react";
 import { useSearchParams } from 'next/navigation';
+import { useAuth } from '@/hooks/use-auth';
+import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
+import { db, storage } from '@/lib/firebase';
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 
 const profileSchema = z.object({
   name: z.string().min(2, {
@@ -42,6 +46,8 @@ export default function ProfilePage() {
   const newRegistration = searchParams.get('newRegistration') === 'true';
   const initialEmail = searchParams.get('email') || '';
   const [isBusinessNameDisabled, setIsBusinessNameDisabled] = useState(!newRegistration);
+    const [isLoading, setIsLoading] = useState(false);
+    const { user } = useAuth();
 
 
   const form = useForm<z.infer<typeof profileSchema>>({
@@ -56,48 +62,85 @@ export default function ProfilePage() {
     },
   });
 
-    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [selectedImage, setSelectedImage] = useState<File | null>(null); // Store the File object
+    const [logoURL, setLogoURL] = useState<string | null>(null);  // For preview and initial value
+
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setSelectedImage(reader.result as string);
-                form.setValue("logo", reader.result as string); // Set the logo value in the form
-            };
-            reader.readAsDataURL(file);
+            setSelectedImage(file);
+            // Create a preview URL
+            setLogoURL(URL.createObjectURL(file));
         }
     };
 
-  function onSubmit(values: z.infer<typeof profileSchema>) {
-    console.log(values);
-    setIsBusinessNameDisabled(true);
-  }
+
+    async function onSubmit(values: z.infer<typeof profileSchema>) {
+        setIsLoading(true);
+
+        try {
+            if (!user) {
+                throw new Error("User not authenticated.");
+            }
+
+            let logoUrl = null;
+            if (selectedImage) {
+                const storageRef = ref(storage, `logos/${user.uid}/${selectedImage.name}`);
+                const snapshot = await uploadBytes(storageRef, selectedImage);
+                logoUrl = await getDownloadURL(snapshot.ref);
+            }
+
+            const profileData = {
+                ...values,
+                logo: logoUrl || values.logo || "", // Use the new logo URL if available
+            };
+
+            const userDocRef = doc(db, "users", user.uid);
+            const docSnap = await getDoc(userDocRef);
+
+            if (docSnap.exists()) {
+                await updateDoc(userDocRef, profileData);
+            } else {
+                await setDoc(userDocRef, profileData);
+            }
+
+
+            setIsBusinessNameDisabled(true);
+
+            console.log("Profile updated successfully");
+        } catch (error: any) {
+            console.error("Error updating profile:", error);
+        } finally {
+            setIsLoading(false);
+        }
+    }
+
 
     useEffect(() => {
-        if (newRegistration) {
-            // Optionally set email as read-only
-            form.setValue("email", initialEmail);
-        } else {
-            // Load existing profile data here.  Simulate data fetch
-            const storedProfile = {
-                name: "Existing User",
-                mobile: "123-456-7890",
-                address: "Existing Address",
-                businessName: "Existing Business",
-                logo: "https://picsum.photos/50/50",
-                email: initialEmail,
-            };
-            form.setValue("name", storedProfile.name);
-            form.setValue("mobile", storedProfile.mobile);
-            form.setValue("address", storedProfile.address);
-            form.setValue("businessName", storedProfile.businessName);
-            form.setValue("logo", storedProfile.logo);
-            form.setValue("email", storedProfile.email);
-            setIsBusinessNameDisabled(true);
-        }
-    }, [newRegistration, initialEmail, form.setValue]);
+        const loadProfile = async () => {
+            if (user) {
+                const userDocRef = doc(db, "users", user.uid);
+                const docSnap = await getDoc(userDocRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data() as z.infer<typeof profileSchema>;
+                    form.setValue("name", data.name);
+                    form.setValue("mobile", data.mobile || "");
+                    form.setValue("address", data.address || "");
+                    form.setValue("businessName", data.businessName);
+                    form.setValue("logo", data.logo || "");  // Setting the initial logo URL
+                    setLogoURL(data.logo || null);
+                    form.setValue("email", data.email);
+                    setIsBusinessNameDisabled(true);
+                } else if (newRegistration && initialEmail) {
+                    form.setValue("email", initialEmail);
+                }
+            }
+        };
+
+        loadProfile();
+    }, [user, form.setValue, newRegistration, initialEmail]);
 
 
   return (
@@ -109,17 +152,17 @@ export default function ProfilePage() {
             </p>
         )}
       <div className="flex items-center space-x-4 mb-6">
-        <Avatar className="h-16 w-16">
-          {form.getValues("logo") ? (
-            <AvatarImage src={form.getValues("logo")} alt="Business Logo" />
-          ) : (
-            <AvatarFallback>
-              {form.getValues("name")
-                ? form.getValues("name").substring(0, 2).toUpperCase()
-                : "CN"}
-            </AvatarFallback>
-          )}
-        </Avatar>
+          <Avatar className="h-16 w-16">
+              {logoURL ? ( // Use logoURL for display
+                  <AvatarImage src={logoURL} alt="Business Logo" />
+              ) : (
+                  <AvatarFallback>
+                      {form.getValues("name")
+                          ? form.getValues("name").substring(0, 2).toUpperCase()
+                          : "CN"}
+                  </AvatarFallback>
+              )}
+          </Avatar>
       </div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
