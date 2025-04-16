@@ -198,7 +198,7 @@ export default function CreateEstimatePage() {
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={field.value}
+                      selected={field.value ? field.value : undefined}
                       onSelect={field.onChange}
                       disabled={(date) =>
                         date > new Date()
@@ -239,7 +239,7 @@ export default function CreateEstimatePage() {
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={field.value}
+                      selected={field.value ? field.value : undefined}
                       onSelect={field.onChange}
                       disabled={(date) =>
                         date < new Date()

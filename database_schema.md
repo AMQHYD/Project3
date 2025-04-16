@@ -1,5 +1,6 @@
 
 # Database Schema
+# Database Schema
 
 This document outlines the database schema for the InvoiceFlow application.
 

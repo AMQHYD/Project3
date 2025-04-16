@@ -18,8 +18,9 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Checkbox } from "@/components/ui/checkbox";
 import Link from "next/link";
-import { useAuth } from '@/hooks/use-auth'; // Import useAuth hook
+import { useAuth } from '@/hooks/use-auth';
 
+// Make both schemas have the same structure with consistent required/optional fields
 const loginSchema = z.object({
   email: z.string().email({
     message: "Invalid email address.",
@@ -28,6 +29,7 @@ const loginSchema = z.object({
     message: "Password must be at least 8 characters.",
   }),
   rememberMe: z.boolean().optional(),
+  confirmPassword: z.string().optional(),
 });
 
 const registerSchema = z.object({
@@ -35,19 +37,22 @@ const registerSchema = z.object({
     message: "Invalid email address.",
   }),
   password: z.string().min(8, {
-      message: "Password must be at least 8 characters.",
+    message: "Password must be at least 8 characters.",
   }),
   confirmPassword: z.string().min(8, {
-      message: "Confirm Password must be at least 8 characters.",
+    message: "Confirm Password must be at least 8 characters.",
   }),
+  rememberMe: z.boolean().optional(),
 });
+
+// Create a unified type for both forms
+type FormValues = z.infer<typeof loginSchema> | z.infer<typeof registerSchema>;
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const router = useRouter();
-    const { signIn, signUp } = useAuth(); // Use useAuth hook for sign-in and sign-up
-
+  const { signIn, signUp } = useAuth();
 
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
@@ -55,6 +60,7 @@ export default function LoginPage() {
       email: "",
       password: "",
       rememberMe: false,
+      confirmPassword: undefined
     },
   });
 
@@ -64,56 +70,57 @@ export default function LoginPage() {
       email: "",
       password: "",
       confirmPassword: "",
+      rememberMe: false
     },
   });
 
-    async function onLoginSubmit(values: z.infer<typeof loginSchema>) {
-        setIsLoading(true);
+  async function onLoginSubmit(values: z.infer<typeof loginSchema>) {
+    setIsLoading(true);
 
-        try {
-            await signIn(values.email, values.password);
-            router.push("/dashboard");
-        } catch (error: any) {
-            loginForm.setError("email", {
-                type: "manual",
-                message: error.message || "Invalid credentials.",
-            });
-            loginForm.setError("password", {
-                type: "manual",
-                message: error.message || "Invalid credentials.",
-            });
-        }
-
-        setIsLoading(false);
+    try {
+      await signIn(values.email, values.password);
+      router.push("/dashboard");
+    } catch (error: any) {
+      loginForm.setError("email", {
+        type: "manual",
+        message: error.message || "Invalid credentials.",
+      });
+      loginForm.setError("password", {
+        type: "manual",
+        message: error.message || "Invalid credentials.",
+      });
     }
 
-    async function onRegisterSubmit(values: z.infer<typeof registerSchema>) {
-        setIsLoading(true);
+    setIsLoading(false);
+  }
 
-        if (values.password !== values.confirmPassword) {
-            registerForm.setError("confirmPassword", {
-                type: "manual",
-                message: "Passwords do not match.",
-            });
-            setIsLoading(false);
-            return;
-        }
+  async function onRegisterSubmit(values: z.infer<typeof registerSchema>) {
+    setIsLoading(true);
 
-        try {
-            await signUp(values.email, values.password);
-            router.push(`/profile?newRegistration=true&email=${values.email}`); // Redirect to profile on successful registration
-        } catch (error: any) {
-            registerForm.setError("email", {
-                type: "manual",
-                message: error.message || "Registration failed.",
-            });
-        }
-
-
-        setIsRegistering(false);
-        setIsLoading(false);
+    if (values.password !== values.confirmPassword) {
+      registerForm.setError("confirmPassword", {
+        type: "manual",
+        message: "Passwords do not match.",
+      });
+      setIsLoading(false);
+      return;
     }
 
+    try {
+      await signUp(values.email, values.password);
+      router.push(`/profile?newRegistration=true&email=${values.email}`);
+    } catch (error: any) {
+      registerForm.setError("email", {
+        type: "manual",
+        message: error.message || "Registration failed.",
+      });
+    }
+
+    setIsRegistering(false);
+    setIsLoading(false);
+  }
+
+  // Render different forms based on isRegistering state
   return (
     <div className="flex items-center justify-center h-screen bg-secondary">
       <Card className="w-full max-w-md">
@@ -123,57 +130,88 @@ export default function LoginPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4">
-          <Form {...(isRegistering ? registerForm : loginForm)}>
-            <form
-              onSubmit={
-                isRegistering
-                  ? registerForm.handleSubmit(onRegisterSubmit)
-                  : loginForm.handleSubmit(onLoginSubmit)
-              }
-              className="space-y-4"
-            >
-              <FormField
-                control={(isRegistering ? registerForm : loginForm).control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input placeholder="user@example.com" type="email" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={(isRegistering ? registerForm : loginForm).control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input type="password" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-                {isRegistering && (
-                    <FormField
-                        control={registerForm.control}
-                        name="confirmPassword"
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Confirm Password</FormLabel>
-                                <FormControl>
-                                    <Input type="password" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-                )}
-              {!isRegistering && (
+          {isRegistering ? (
+            <Form {...registerForm}>
+              <form
+                onSubmit={registerForm.handleSubmit(onRegisterSubmit)}
+                className="space-y-4"
+              >
+                <FormField
+                  control={registerForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder="user@example.com" type="email" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={registerForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={registerForm.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirm Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button disabled={isLoading} className="w-full" type="submit">
+                  {isLoading ? "Loading..." : "Register"}
+                </Button>
+              </form>
+            </Form>
+          ) : (
+            <Form {...loginForm}>
+              <form
+                onSubmit={loginForm.handleSubmit(onLoginSubmit)}
+                className="space-y-4"
+              >
+                <FormField
+                  control={loginForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input placeholder="user@example.com" type="email" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={loginForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input type="password" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
                 <div className="flex items-center justify-between">
                   <FormField
                     control={loginForm.control}
@@ -194,22 +232,18 @@ export default function LoginPage() {
                     )}
                   />
                   <Link
-                    href="/forgot-password" // Replace with your forgot password route
+                    href="/forgot-password"
                     className="text-sm text-primary hover:underline"
                   >
                     Forgot Password?
                   </Link>
                 </div>
-              )}
-              <Button disabled={isLoading} className="w-full" type="submit">
-                {isLoading
-                  ? "Loading..."
-                  : isRegistering
-                  ? "Register"
-                  : "Login"}
-              </Button>
-            </form>
-          </Form>
+                <Button disabled={isLoading} className="w-full" type="submit">
+                  {isLoading ? "Loading..." : "Login"}
+                </Button>
+              </form>
+            </Form>
+          )}
           <div className="text-center">
             <Button
               variant="link"

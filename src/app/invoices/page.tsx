@@ -28,12 +28,12 @@ export default function InvoicesPage() {
         <h1 className="text-3xl font-bold">Invoices</h1>
         <div>
           <Link href="/invoices/create">
-            <Button variant="primary" className="mr-2">
+            <Button variant="default" className="mr-2">
               Create Invoice
             </Button>
           </Link>
           <Link href="/recurring-invoices/create">
-            <Button variant="primary">Create Recurring Invoice</Button>
+            <Button variant="default">Create Recurring Invoice</Button>
           </Link>
         </div>
       </div>

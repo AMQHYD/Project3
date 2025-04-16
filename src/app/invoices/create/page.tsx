@@ -254,7 +254,7 @@ export default function CreateInvoicePage() {
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={field.value}
+                      selected={field.value ? field.value : undefined}
                       onSelect={field.onChange}
                       disabled={(date) => date > new Date()}
                       initialFocus
@@ -293,7 +293,7 @@ export default function CreateInvoicePage() {
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
-                      selected={field.value}
+                      selected={field.value ? field.value : undefined}
                       onSelect={field.onChange}
                       disabled={(date) => date < new Date()}
                       initialFocus
@@ -455,8 +455,8 @@ export default function CreateInvoicePage() {
                   ) : (
                       <Avatar className="h-16 w-16">
                           <AvatarFallback>
-                              {profile.name
-                                  ? profile.name.substring(0, 2).toUpperCase()
+                              {form.getValues("clientName")
+                                  ? (form.getValues("clientName") || '').substring(0, 2).toUpperCase() // Corrected line
                                   : "CN"}
                           </AvatarFallback>
                       </Avatar>

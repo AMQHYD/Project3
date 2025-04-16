@@ -28,7 +28,7 @@ export default function EstimatesPage() {
         <h1 className="text-3xl font-bold">Estimates</h1>
         <div>
           <Link href="/estimates/create">
-            <Button variant="primary">Create Estimate</Button>
+            <Button variant="default">Create Estimate</Button>
           </Link>
         </div>
       </div>

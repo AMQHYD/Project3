@@ -1,5 +1,6 @@
 "use client";
 
+import React from 'react';
 import { useState, useEffect, createContext, useContext } from 'react';
 import {
     getAuth,
@@ -32,20 +33,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setUser(user);
             setLoading(false);
         });
-
+        
         return () => unsubscribe();
     }, [auth]);
 
     const signIn = async (email: string, password: string): Promise<void> => {
-        await signInWithEmailAndPassword(auth, email, password);
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+        } catch (error) {
+            throw new Error(`Failed to sign in: ${(error as Error).message}`);
+        }
     };
 
     const signUp = async (email: string, password: string): Promise<void> => {
-        await createUserWithEmailAndPassword(auth, email, password);
+        try {
+            await createUserWithEmailAndPassword(auth, email, password);
+        } catch (error) {
+            throw new Error(`Failed to sign up: ${(error as Error).message}`);
+        }
     };
-
     const signOut = async (): Promise<void> => {
-        await firebaseSignOut(auth);
+        try {
+            await firebaseSignOut(auth);
+        } catch (error) {
+            throw new Error(`Failed to sign out: ${(error as Error).message}`);
+        }
     };
 
     const value: AuthContextType = {
@@ -55,12 +67,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         signUp,
         signOut,
     };
-
-    return (
-        <AuthContext.Provider value={value}>
-            {children}
-        </AuthContext.Provider>
-    );
+    const authProvider = <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+    return authProvider;
 };
 
 export const useAuth = (): AuthContextType => {
