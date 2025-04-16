@@ -19,7 +19,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Dialog,
@@ -31,6 +31,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useFieldArray } from "react-hook-form";
+import {
+    Avatar,
+    AvatarFallback,
+    AvatarImage,
+} from "@/components/ui/avatar";
 
 const estimateSchema = z.object({
   clientName: z.string().min(2, {
@@ -89,6 +94,25 @@ export default function CreateEstimatePage() {
 
   const [date, setDate] = useState<Date | undefined>(new Date());
     const [open, setOpen] = useState(false);
+    const [profile, setProfile] = useState({
+        name: "",
+        mobile: "",
+        address: "",
+        businessName: "",
+        logo: "",
+    });
+
+    useEffect(() => {
+        // Simulate fetching profile data.  Replace with actual data fetch.
+        const storedProfile = {
+            name: "John Doe",
+            mobile: "123-456-7890",
+            address: "123 Main St, Anytown",
+            businessName: "Acme Corp",
+            logo: "https://picsum.photos/50/50",  // Or null if no logo
+        };
+        setProfile(storedProfile);
+    }, []);
 
 
   const onSubmit = (values: z.infer<typeof estimateSchema>) => {
@@ -369,7 +393,26 @@ export default function CreateEstimatePage() {
             </DialogDescription>
           </DialogHeader>
           <div className="mt-4">
-            {/* Display Estimate Preview Here - Replace with actual estimate data */}
+              {/* Display Invoice Preview Here - Replace with actual invoice data */}
+              <div className="flex items-center space-x-4 mb-6">
+                  {profile.logo ? (
+                      <Avatar className="h-16 w-16">
+                          <AvatarImage src={profile.logo} alt="Business Logo" />
+                      </Avatar>
+                  ) : (
+                      <Avatar className="h-16 w-16">
+                          <AvatarFallback>
+                              {profile.name
+                                  ? profile.name.substring(0, 2).toUpperCase()
+                                  : "CN"}
+                          </AvatarFallback>
+                      </Avatar>
+                  )}
+                  <div>
+                      <p className="text-lg font-semibold">{profile.businessName || "Your Business"}</p>
+                      <p className="text-sm text-gray-500">{profile.address || "Your Address"}</p>
+                  </div>
+              </div>
             <p>Client Name: {form.getValues("clientName")}</p>
             <p>Estimate Number: {form.getValues("estimateNumber")}</p>
             <p>Issue Date: {form.getValues("issueDate") ? format(form.getValues("issueDate"), "PPP") : ''}</p>
@@ -391,4 +434,3 @@ export default function CreateEstimatePage() {
     </div>
   );
 }
-
