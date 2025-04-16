@@ -29,11 +29,24 @@ const loginSchema = z.object({
   rememberMe: z.boolean().optional(),
 });
 
+const registerSchema = z.object({
+  email: z.string().email({
+    message: "Invalid email address.",
+  }),
+  password: z.string().min(8, {
+    message: "Password must be at least 8 characters.",
+  }),
+  confirmPassword: z.string().min(8, {
+      message: "Confirm Password must be at least 8 characters.",
+  }),
+});
+
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
   const router = useRouter();
 
-  const form = useForm<z.infer<typeof loginSchema>>({
+  const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
@@ -42,7 +55,16 @@ export default function LoginPage() {
     },
   });
 
-  async function onSubmit(values: z.infer<typeof loginSchema>) {
+  const registerForm = useForm<z.infer<typeof registerSchema>>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+  });
+
+  async function onLoginSubmit(values: z.infer<typeof loginSchema>) {
     setIsLoading(true);
 
     // Simulate authentication
@@ -54,11 +76,11 @@ export default function LoginPage() {
       router.push("/dashboard");
     } else {
       // Set login error
-      form.setError("email", {
+      loginForm.setError("email", {
         type: "manual",
         message: "Invalid credentials.",
       });
-      form.setError("password", {
+      loginForm.setError("password", {
         type: "manual",
         message: "Invalid credentials.",
       });
@@ -67,17 +89,44 @@ export default function LoginPage() {
     setIsLoading(false);
   }
 
+  async function onRegisterSubmit(values: z.infer<typeof registerSchema>) {
+      setIsLoading(true);
+
+      if (values.password !== values.confirmPassword) {
+          registerForm.setError("confirmPassword", {
+              type: "manual",
+              message: "Passwords do not match.",
+          });
+          setIsLoading(false);
+          return;
+      }
+      // Simulate registration
+      console.log("Registration successful", values);
+
+      setIsRegistering(false);
+      setIsLoading(false);
+  }
+
   return (
     <div className="flex items-center justify-center h-screen bg-secondary">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl text-center">Login</CardTitle>
+          <CardTitle className="text-2xl text-center">
+            {isRegistering ? "Register" : "Login"}
+          </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <Form {...(isRegistering ? registerForm : loginForm)}>
+            <form
+              onSubmit={
+                isRegistering
+                  ? registerForm.handleSubmit(onRegisterSubmit)
+                  : loginForm.handleSubmit(onLoginSubmit)
+              }
+              className="space-y-4"
+            >
               <FormField
-                control={form.control}
+                control={(isRegistering ? registerForm : loginForm).control}
                 name="email"
                 render={({ field }) => (
                   <FormItem>
@@ -90,7 +139,7 @@ export default function LoginPage() {
                 )}
               />
               <FormField
-                control={form.control}
+                control={(isRegistering ? registerForm : loginForm).control}
                 name="password"
                 render={({ field }) => (
                   <FormItem>
@@ -102,37 +151,68 @@ export default function LoginPage() {
                   </FormItem>
                 )}
               />
-              <div className="flex items-center justify-between">
-                <FormField
-                  control={form.control}
-                  name="rememberMe"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-2 space-y-0">
-                      <FormControl>
-                        <Checkbox
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormLabel className="text-sm font-normal">
-                        Remember Me
-                      </FormLabel>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Link
-                  href="/forgot-password" // Replace with your forgot password route
-                  className="text-sm text-primary hover:underline"
-                >
-                  Forgot Password?
-                </Link>
-              </div>
+                {isRegistering && (
+                    <FormField
+                        control={registerForm.control}
+                        name="confirmPassword"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Confirm Password</FormLabel>
+                                <FormControl>
+                                    <Input type="password" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                )}
+              {!isRegistering && (
+                <div className="flex items-center justify-between">
+                  <FormField
+                    control={loginForm.control}
+                    name="rememberMe"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-2 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm font-normal">
+                          Remember Me
+                        </FormLabel>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Link
+                    href="/forgot-password" // Replace with your forgot password route
+                    className="text-sm text-primary hover:underline"
+                  >
+                    Forgot Password?
+                  </Link>
+                </div>
+              )}
               <Button disabled={isLoading} className="w-full" type="submit">
-                {isLoading ? "Logging in..." : "Login"}
+                {isLoading
+                  ? "Loading..."
+                  : isRegistering
+                  ? "Register"
+                  : "Login"}
               </Button>
             </form>
           </Form>
+          <div className="text-center">
+            <Button
+              variant="link"
+              onClick={() => setIsRegistering(!isRegistering)}
+            >
+              {isRegistering
+                ? "Already have an account? Login"
+                : "Don't have an account? Register"}
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
