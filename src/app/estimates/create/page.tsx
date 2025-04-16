@@ -97,9 +97,9 @@ export default function CreateEstimatePage() {
     const calculateTotal = () => {
         let total = 0;
         fields.forEach((item, index) => {
-            const quantity = Number(form.getValues(`items.${index}.quantity`)) || 0;
-            const price = Number(form.getValues(`items.${index}.price`)) || 0;
-            const taxRate = Number(form.getValues(`items.${index}.tax`)) || 0;
+            const quantity = form.getValues(`items.${index}.quantity`) || 0;
+            const price = form.getValues(`items.${index}.price`) || 0;
+            const taxRate = form.getValues(`items.${index}.tax`) || 0;
             const itemTotal = quantity * price;
             const taxAmount = itemTotal * (taxRate / 100);
             total += itemTotal + taxAmount;
