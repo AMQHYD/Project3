@@ -18,6 +18,8 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 const revenueData = [
   { name: "Feb", uv: 3000 },
@@ -47,13 +49,39 @@ const topClientsData = [
 ];
 
 export default function DashboardPage() {
+
+  const generatePdf = () => {
+    const doc = new jsPDF();
+    (doc as any).autoTable({
+      head: [['Report', 'Value']],
+      body: [
+        ['Total Revenue', '$48,662.00'],
+        ['Pending Revenue', '$40,353.13'],
+        ['Overdue Revenue', '$14,012.63'],
+        ['Invoice Status - Paid', '25%'],
+        ['Invoice Status - Pending', '33%'],
+        ['Invoice Status - Overdue', '17%'],
+        ['Invoice Status - Draft', '25%'],
+        ['Top Client - Global Enterprises', '$6181.25'],
+        ['Top Client - Restaurant Chain', '$4563.38'],
+        ['Invoice Aging', 'No data available'],
+        ['Monthly Revenue Trends', 'Not available yet'],
+        ['Revenue by Product', 'Not available'],
+        ['Payment Performance', 'Track average payment times'],
+        ['Period Comparison', 'Compare data between periods'],
+        ['Client Activity', 'View client interaction history'],
+      ],
+    });
+    doc.save('reports.pdf');
+  };
+
   return (
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-3xl font-bold">Reports</h1>
         <div className="flex items-center space-x-2">
           <Button>Advanced Reports</Button>
-          <Button variant="outline" size="icon">
+          <Button variant="outline" size="icon" onClick={generatePdf}>
             <Download className="h-4 w-4" />
           </Button>
         </div>
